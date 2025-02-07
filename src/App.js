@@ -1,24 +1,25 @@
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import Login from "./components/login/login";
+import Menu from "./components/menu/menu";
+import Inbox from "./components/inbox/inbox";
+import Spam from "./components/spam/spam";
+import Compose from "./compose";
+import SpeechAssistant from "./components/speech/speechassist";
+
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+        <SpeechAssistant/>
+      <Routes>
+        <Route path="/" element={<Login />} />
+        <Route path="/menu" element={<Menu />} />
+        <Route path="/inbox" element={<Inbox />} />
+        <Route path="/compose" element={<Compose />} />
+        <Route path="/spam" element={<Spam />} />
+      </Routes>
+    </Router>
   );
 }
 
