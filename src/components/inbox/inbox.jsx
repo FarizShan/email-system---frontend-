@@ -1,3 +1,5 @@
+//working inbox code 
+
 import React, { useState, useEffect } from "react"
 import { ArrowLeft, Star, Trash, X } from "lucide-react"
 import "./inbox.css"
