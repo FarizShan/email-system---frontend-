@@ -153,12 +153,18 @@
   
   .main-content {
     padding: 3rem 0;
+    /* padding: 100px */
+  }
+
+  .menu-subtitle{
+    text-align:center
   }
   
   .content-wrapper {
     max-width: 56rem;
     margin: 0 auto;
-    padding: 0 1rem;
+    /* padding: 0 1rem; */
+    padding:30px
   }
   
   .main-title {
@@ -219,11 +225,16 @@
   .card-description {
     font-size: 0.875rem;
     color: rgba(255, 255, 255, 0.7);
+    padding-top:20px
   }
   
   @media (min-width: 768px) {
     .menu-grid {
       grid-template-columns: repeat(2, 1fr);
     }
+  }
+
+  #result{
+    text-align:center
   }
 

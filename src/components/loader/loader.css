@@ -1,0 +1,89 @@
+.loader-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f0f0f0;
+    overflow: hidden;
+  }
+  
+  .eye-container {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin-bottom: 20px;
+  }
+  
+  .eye {
+    position: absolute;
+    width: 100px;
+    height: 50px;
+    background: white;
+    border: 5px solid #333;
+    border-radius: 50px 50px 0 0;
+    overflow: hidden;
+    animation: eyeBlink 3s infinite;
+  }
+  
+  .eyelid {
+    position: absolute;
+    top: -50px;
+    width: 100%;
+    height: 100px;
+    background: #f0f0f0;
+    animation: eyelidMove 3s infinite;
+  }
+  
+  .pupil {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 20px;
+    background: #333;
+    border-radius: 50%;
+  }
+  
+  .app-name {
+    font-size: 48px;
+    color: #333;
+    opacity: 0;
+    animation: fadeIn 2s ease-in forwards;
+    animation-delay: 0.5s;
+  }
+  
+  /* Eye blink animation */
+  @keyframes eyeBlink {
+    0%, 90% {
+      height: 50px;
+    }
+    95% {
+      height: 5px;
+    }
+    100% {
+      height: 50px;
+    }
+  }
+  
+  @keyframes eyelidMove {
+    0%, 90% {
+      top: -50px;
+    }
+    95% {
+      top: 0;
+    }
+    100% {
+      top: -50px;
+    }
+  }
+  
+  @keyframes fadeIn {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
