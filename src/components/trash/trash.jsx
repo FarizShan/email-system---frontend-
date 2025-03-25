@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Trash2 } from "lucide-react"; // Assuming Trash2 icon for "Trash"
+import { Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "./trash.css";
 
@@ -114,54 +114,56 @@ const Trash = () => {
     const signal = abortControllerRef.current.signal;
 
     try {
-      const endpoint = "get-trash-emails"; // Adjust this to your backend endpoint
-      console.log(`Starting fetch from ${endpoint}`);
-      setTrashEmails(null);
-      setSelectedTrashEmail(null);
-      setCurrentTrashEmailIndex(0);
-
       const senderEmail = localStorage.getItem("userEmail");
       if (!senderEmail) {
         throw new Error("No sender email found in localStorage. Please log in first.");
       }
 
-      const response = await fetch(`http://localhost:5001/${endpoint}`, {
+      console.log("Fetching trash emails...");
+      setTrashEmails(null); // Reset state while fetching
+      setSelectedTrashEmail(null);
+      setCurrentTrashEmailIndex(0);
+
+      const response = await fetch("http://localhost:5001/get-trash-emails", {
         method: "GET",
         headers: {
           "X-Sender-Email": senderEmail,
+          "Content-Type": "application/json",
         },
         signal,
       });
+
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
         throw new Error(`HTTP error! Status: ${response.status} - ${errorData.error || "Unknown error"}`);
       }
+
       const data = await response.json();
-      console.log(`Fetched ${data.length} emails:`, data);
+      console.log(`Fetched ${data.length} trash emails:`, data);
 
       const mappedEmails = data.map((email) => ({
-        id: email.id,
-        from: email.from, // Assuming "from" for received emails in trash
+        id: email.id || `${Date.now()}-${Math.random()}`, // Fallback ID if missing
+        from: email.from || "Unknown Sender", // Fallback for missing 'from'
         subject: email.subject || "No Subject",
-        preview: email.snippet || "No preview available",
+        preview: email.snippet || (email.content ? email.content.slice(0, 100) + "..." : "No preview available"),
         content: email.content || "No content available",
         date: formatDate(email.date),
-        read: true, // Assuming all trash emails are marked as read
+        read: email.read !== undefined ? email.read : true, // Default to true if not specified
       }));
 
-      if (abortControllerRef.current.signal.aborted) return;
+      if (signal.aborted) return [];
       setTrashEmails(mappedEmails);
       return mappedEmails;
     } catch (error) {
       if (error.name === "AbortError") {
         console.log("Fetch aborted");
-        return;
+        return [];
       }
-      console.error("Error fetching trash emails:", error);
+      console.error("Error fetching trash emails:", error.message);
       setTrashEmails([]);
       setSelectedTrashEmail(null);
       speak(`Error fetching trash emails: ${error.message}`);
-      throw error;
+      return [];
     }
   };
 
@@ -248,11 +250,12 @@ const Trash = () => {
   }, []);
 
   const handleMainTrashCommands = (command) => {
-    const normalizedCommand = command.toLowerCase().trim();
+    const normalizedCommand = command.toLowerCase().replace(/\s+/g, " ").trim();
+    console.log("Normalized command:", normalizedCommand);
     const includesAny = (str, terms) => terms.some((term) => str.includes(term));
 
     switch (true) {
-      case normalizedCommand === "go to trash":
+      case includesAny(normalizedCommand, ["go to trash", "go to trashes"]):
         phaseRef.current = "reading";
         fetchTrashEmails()
           .then((fetchedEmails) => {
@@ -266,10 +269,9 @@ const Trash = () => {
             }
           })
           .catch(() => {
-            speak("Error fetching trash emails. Returning to main menu.", () => {
-              phaseRef.current = "main";
-              startRecognition(handleMainTrashCommands);
-            });
+            // Error is already spoken in fetchTrashEmails
+            phaseRef.current = "main";
+            startRecognition(handleMainTrashCommands);
           });
         break;
       case normalizedCommand === "menu":
@@ -296,6 +298,7 @@ const Trash = () => {
   };
 
   const getInitial = (name) => {
+    if (!name || typeof name !== "string") return "?"; // Fallback for undefined/null/non-string
     const namePart = name.split("<")[0].trim();
     return namePart.charAt(0).toUpperCase();
   };

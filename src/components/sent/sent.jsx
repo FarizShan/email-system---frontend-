@@ -107,46 +107,29 @@ const Sent = () => {
   };
 
   const fetchSentEmails = async () => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    abortControllerRef.current = new AbortController();
-    const signal = abortControllerRef.current.signal;
-
     try {
-      const endpoint = "get-sent-emails";
-      console.log(`Starting fetch from ${endpoint}`);
-      setSentEmails(null);
-      setSelectedSentEmail(null);
-      setCurrentSentEmailIndex(0);
-
-      const response = await fetch(`http://localhost:5001/${endpoint}`, { signal });
+      const response = await fetch("http://localhost:5001/get-sent-emails");
       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+      
       const data = await response.json();
-      console.log(`Fetched ${data.length} emails:`, data);
-
+      console.log("Fetched emails:", data);
+  
       const mappedEmails = data.map((email) => ({
         id: email.id,
-        to: email.to,
+        to: email.to || "Unknown Recipient", // Fallback for missing 'to'
         subject: email.subject || "No Subject",
-        preview: email.content || "No preview available",
+        preview: email.content ? email.content.slice(0, 100) + "..." : "No content...",
         content: email.content || "No content available",
-        date: formatDate(email.date),
+        date: email.date,
         read: true,
       }));
-
-      if (abortControllerRef.current.signal.aborted) return;
+  
       setSentEmails(mappedEmails);
       return mappedEmails;
     } catch (error) {
-      if (error.name === "AbortError") {
-        console.log("Fetch aborted");
-        return;
-      }
-      console.error("Error fetching emails:", error);
+      console.error("Error fetching sent emails:", error);
       setSentEmails([]);
-      setSelectedSentEmail(null);
-      throw error;
+      return [];
     }
   };
 
@@ -228,11 +211,12 @@ const Sent = () => {
   }, []);
 
   const handleMainSentCommands = (command) => {
-    const normalizedCommand = command.toLowerCase().trim();
+    const normalizedCommand = command.toLowerCase().replace(/\s+/g, " ").trim();
+    console.log("Normalized command:", normalizedCommand);
     const includesAny = (str, terms) => terms.some((term) => str.includes(term));
 
     switch (true) {
-      case normalizedCommand === "go to sent":
+      case includesAny(normalizedCommand, ["go to sent", "go to send"]):
         phaseRef.current = "reading";
         fetchSentEmails()
           .then((fetchedEmails) => {
@@ -275,6 +259,7 @@ const Sent = () => {
   };
 
   const getInitial = (name) => {
+    if (!name || typeof name !== "string") return "?"; // Fallback for undefined/null/non-string
     const namePart = name.split("<")[0].trim();
     return namePart.charAt(0).toUpperCase();
   };
